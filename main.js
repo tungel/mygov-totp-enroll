@@ -72,22 +72,28 @@ function verifyCode(code) {
 
 function makeQR(secret) {
     secret32 = base32.stringify(base64.parse(secret))
+    console.log("secret32 first: " + secret32)
     secret32 = secret32.replace(/=+$/, "")
+    console.log("secret32 second: " + secret32)
     totp_uri = 'otpauth://totp/myGov?secret=' + secret32 + '&algorithm=SHA512'
+    console.log("totp_uri: " + totp_uri)
 
-    qrcode.toDataURL(totp_uri)
-        .then(url => {
-            setStatus("Enroll this secret in your TOTP client and enter the current code");
-            setDetail(totp_uri + '<p><img src="' + url + '"/>');
-            showCodeForm(true);
-        })
-        .catch(err => {
-            setError("QR encoding error", err);
-        })
+    showCodeForm(true);
+
+    // qrcode.toDataURL(totp_uri)
+    //     .then(url => {
+    //         setStatus("Enroll this secret in your TOTP client and enter the current code");
+    //         setDetail(totp_uri + '<p><img src="' + url + '"/>');
+    //         showCodeForm(true);
+    //     })
+    //     .catch(err => {
+    //         setError("QR encoding error", err);
+    //     })
 }
 
 function requestSecret(token) {
     setStatus("Requesting OAuth secret...");
+    console.log("Requesting OAuth secret...");
     const options = {
         method: 'POST',
         url: 'https://api.my.gov.au/authbiz-ext-sec/api/v1/authclients/g2c2pjLUThOaBumECqbf/totpcredential.json',
@@ -106,12 +112,14 @@ function requestSecret(token) {
         }
 
         secret = body.secret;
+        console.log("secret is: " + secret)
         makeQR(secret);
     });
 }
 
 function requestToken(code) {
     setStatus("Requesting OAuth token...");
+    console.log("Requesting OAuth token...");
 
     const options = {
       method: 'POST',
@@ -137,6 +145,7 @@ function requestToken(code) {
         }
 
         token = body.access_token;
+        console.log("token is: " + token)
 
         requestSecret(token);
     });
@@ -144,6 +153,7 @@ function requestToken(code) {
 
 function createWindow () {
     protocol.registerFileProtocol('au.gov.my', (req, callback) => {
+        console.log("Trying to go to...")
         console.log(req.url)
         query = url.parse(req.url, true).query
         if ("code" in query) {
